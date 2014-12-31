@@ -1,0 +1,90 @@
+The scripts in this directory together form the "osmtools" suite.
+Originally written by Frederik Ramm <frederik@remote.org>, public domain.
+Updated by Jo Walsh <metazool@fastmail.net> in 2014.
+
+The scripts require Perl and the LWP module (libwww-perl on Ubuntu et al.).
+They also require Net::OAuth for authentication.
+Getopt::Long is required for options parsing.
+
+PACKAGE CONTENTS
+----------------
+
+changeset.pl / Changeset.pm -- opens and closes changesets
+undo.pl      / Undo.pm      -- undoes one change to one object
+undelete.pl  / Undelete.pm  -- undeletes an object; see comment in-file
+                               for differences to undo
+revert.pl    / Revert.pm    -- reverts a whole changeset
+
+DESIGN "PHILOSOPHY"
+-------------------
+
+Most functionality is implemented as individual Perl modules (.pm). They do
+not have a namespace because we want people to be able to run everything
+from the current directory. If you create a Perl module named "Osm::Api", 
+then it has to reside in a subdirectory named "Osm" which tends to get 
+confusing, at least for me.
+
+We're not using any libraries for XML reading and writing, just plain regular
+expressions.
+
+We're not creating any OO interfaces.
+
+In addition to the modules, there are simple perl scripts (.pl) that can
+be called from the command line and that provide a command line interface
+to what the modules do.
+
+If you want to create some hyper cool object oriented undo/redo manager
+using all the latest libraries and technologies and design patterns, 
+feel free to cannibalize the hell out of this code and make your own.
+
+ACT RESPONSIBLY
+---------------
+
+These scripts enable you to revert edits done by other people. Never do this
+unless you are absolutely sure that the edit in question is either malicious
+or accidental. Make an effort to talk to the user beforehand and afterwards.
+Always be kind to other mappers, and always assume that if they did something
+wrong it must have been an error, a misunderstanding, or their cat chasing 
+fluff across the keyboard!
+
+When in doubt, discuss things on the mailing list before you act (see 
+lists.openstreetmap.org). 
+
+Please do not use these scripts to make mechanical edits.
+http://wiki.openstreetmap.org/wiki/Mechanical_Edit_Policy
+
+These scripts do not have safety nets. Be sure that you feel confident to
+fix anything you might break. If you do not know your PUTs from your GETs,
+if you do not know the details of API 0.6, or know what changesets are
+and how they work, then DO NOT USE THIS SOFTWARE.
+
+CONFIGURATION
+-------------
+
+You will have to create a file named .osmtoolsrc in your home directory 
+containg your user name, password, and the URL of the OSM server to use. The 
+URL must be complete up to the API version number and the slash afterwards, so:
+
+username=fred
+password=test
+apiurl=http://api06.dev.openstreetmap.org/api/0.6/
+
+By default, all tools will run in "dry run" mode, so no changes will 
+be actually written and all write requests will be considered successful.
+Add the "dryrun=0" parameter to the file for live action.
+
+By default, "dry run" also enables "debug" so you are shown the requests
+made. If you want to keep debug mode when setting dryrun=0, explicitly
+set debug=1.
+
+UPDATES
+-------
+
+Basic Auth won't be provided for much longer, so we are adding Net::OAuth to provide credentials, and fill out get_with_credentials
+
+Opt parsing will be added in a standard way with Getopt::Long
+
+Unit tests will exist.
+
+A suggested new feature is the automatic annotation of Changeset descriptions and discussions.
+
