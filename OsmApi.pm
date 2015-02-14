@@ -13,24 +13,25 @@ package OsmApi;
 use strict;
 use warnings;
 use LWP::UserAgent;
+use Net::OAuth::Client;
 use MIME::Base64;
 
 our $prefs;
 our $ua;
 our $dummy;
+our $token;
 
 BEGIN
 {
 
     $prefs = { "dryrun" => 1 };
 
+    
     open (PREFS, $ENV{HOME}."/.osmtoolsrc") or die "cannot open ". $ENV{HOME}."/.osmtoolsrc";
-    while(<PREFS>)
-    {
-        if (/^(\S+)\s*=\s*(.*)/)
-        {
-            $prefs->{$1} = $2;
-        }
+    while(<PREFS>) {
+       if (/^(\S+)\s*=\s*(.*)/) {
+           $prefs->{$1} = $2;
+       }
     }
     close (PREFS);
 
@@ -88,12 +89,34 @@ sub get
 sub get_with_credentials
 {
     my $url = shift;
+    
+    if (!defined $token) {
+       my $client = oauth_client();
+       $client->authorize_url;
+       $token = $client->get_access_token(
+                  $client->{params}->{oauth_token},
+                  $client->{params}->{oauth_verifier},
+                );
+    }    
     my $req = HTTP::Request->new(GET => $prefs->{apiurl}.$url);
     $req->header("Authorization" => "Basic ".encode_base64($prefs->{username}.":".$prefs->{password}));
     my $resp = repeat($req);
     debuglog($req, $resp) if ($prefs->{"debug"});
     return($resp);
 }
+
+
+sub oauth_client {
+    return Net::OAuth::Client->new(
+                $prefs->{'client_id'},
+                $prefs->{'client_secret'},
+                site => 'https://www.openstreetmap.org/',
+                request_token_path => '/oauth/request_token',
+                authorize_path => '/oauth/access_token',
+                access_token_path => '/oauth/authorize',
+    );
+}
+
 
 sub put
 {
@@ -149,7 +172,7 @@ sub dummylog
 {
     my ($method, $url, $body) = @_;
     print STDERR "$method $url\n";
-    print STDERR "$body\n\n";
+    print STDERR "$body\n\n" if defined $body;
     return $dummy;
 }
 sub set_timeout

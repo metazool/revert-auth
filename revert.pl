@@ -42,7 +42,7 @@ if ($undo_cs eq "-")
 }
 
 # what have we got, changeset or comment?
-if ($current_cs_or_comment =~ /^\d+$/)
+if (defined $current_cs_or_comment) and ($current_cs_or_comment =~ /^\d+$/)
 {
     $current_cs = $current_cs_or_comment;
 }
